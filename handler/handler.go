@@ -10,14 +10,16 @@ import (
 )
 
 type Handler struct {
-	bot      *tgbotapi.BotAPI
-	owClient *openweather.OpenWeatherClient
+	bot        *tgbotapi.BotAPI
+	owClient   *openweather.OpenWeatherClient
+	userCities map[int64]string
 }
 
 func New(bot *tgbotapi.BotAPI, owClient *openweather.OpenWeatherClient) *Handler {
 	return &Handler{
-		bot:      bot,
-		owClient: owClient,
+		bot:        bot,
+		owClient:   owClient,
+		userCities: make(map[int64]string),
 	}
 }
 
@@ -36,8 +38,26 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
 	}
-	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
+	if update.Message.IsCommand() {
+		switch update.Message.Command() {
+		case "city":
+			city := update.Message.CommandArguments()
+			h.userCities[update.Message.From.ID] = city
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Город %s сохранен", city))
+			msg.ReplyToMessageID = update.Message.MessageID
+			h.bot.Send(msg)
+			return
+		default:
+			log.Printf("New comand [%s] %s", update.Message.From.UserName, update.Message.Text)
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Такая команда не доступна")
+			msg.ReplyToMessageID = update.Message.MessageID
+			h.bot.Send(msg)
+			return
+		}
+	}
+
+	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 	coordinates, err := h.owClient.Coordinates(update.Message.Text)
 	if err != nil {
 		log.Println(err)
@@ -49,7 +69,7 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) {
 
 	weather, err := h.owClient.Weather(coordinates.Lat, coordinates.Lon)
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Не смогли получить погоду в этой местности")
 		msg.ReplyToMessageID = update.Message.MessageID
 		h.bot.Send(msg)
