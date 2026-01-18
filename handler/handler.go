@@ -23,7 +23,7 @@ func New(bot *tgbotapi.BotAPI, owClient *openweather.OpenWeatherClient) *Handler
 	}
 }
 
-func (h Handler) Start() {
+func (h *Handler) Start() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -54,7 +54,7 @@ func (h *Handler) handleUpdate(update tgbotapi.Update) {
 	}
 }
 
-func (h Handler) handleSetCity(update tgbotapi.Update) {
+func (h *Handler) handleSetCity(update tgbotapi.Update) {
 	city := update.Message.CommandArguments()
 	h.userCities[update.Message.From.ID] = city
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Город %s сохранен", city))
