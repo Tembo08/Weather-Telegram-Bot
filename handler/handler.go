@@ -101,7 +101,7 @@ func (h *Handler) handleSendWeather(update tgbotapi.Update) {
 }
 
 func (h *Handler) handleUnknownCommand(update tgbotapi.Update) {
-	log.Printf("Unrnown command [%s] %s", update.Message.From.UserName, update.Message.Text)
+	log.Printf("Unknown command [%s] %s", update.Message.From.UserName, update.Message.Text)
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Такая команда не доступна")
 	msg.ReplyToMessageID = update.Message.MessageID
 	h.bot.Send(msg)
