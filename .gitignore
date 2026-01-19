@@ -1,4 +1,6 @@
 # Binaries
+/main
+/my-weather-bot
 *.exe
 *.exe~
 *.dll
@@ -66,3 +68,5 @@ config.toml
 
 # Telegram bot session files
 *.session
+main
+.gitignore
